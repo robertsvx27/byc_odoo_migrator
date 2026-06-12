@@ -1,0 +1,30 @@
+# Migration rules from Odoo 14.0 to 15.0
+
+version:
+  from: '14.0'
+  to: '15.0'
+
+python_patterns:
+  - id: "api_one_decorator"
+    pattern: "@api.one"
+    replacement: "# Removed @api.one - use @api.depends or @api.onchange"
+    description: "api.one decorator is removed in 15.0"
+    enabled: true
+    use_regex: false
+  
+  - id: "html_escape"
+    pattern: "from openerp.tools import html_escape"
+    replacement: "from markupsafe import escape as html_escape"
+    description: "html_escape moved to markupsafe"
+    enabled: true
+    use_regex: false
+
+xml_patterns:
+  - id: "field_domain"
+    pattern: 'domain="['
+    replacement: 'domain="['
+    description: "Update XML domain format"
+    enabled: false
+    use_regex: false
+
+js_patterns: []
