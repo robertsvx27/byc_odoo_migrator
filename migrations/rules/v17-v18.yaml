@@ -1,0 +1,9 @@
+# Migration rules from Odoo 17.0 to 18.0
+
+version:
+  from: '17.0'
+  to: '18.0'
+
+python_patterns: []
+xml_patterns: []
+js_patterns: []

@@ -1,0 +1,40 @@
+# Example: Custom Migration Rules
+
+# This file demonstrates how to create custom migration rules
+# for your specific modules and requirements.
+
+version:
+  from: '14.0'
+  to: '15.0'
+  description: 'Custom migration rules for your project'
+
+python_patterns:
+  - id: "custom_rule_1"
+    pattern: "my_deprecated_function"
+    replacement: "my_new_function"
+    description: "Replace deprecated custom function"
+    enabled: true
+    use_regex: false
+
+  - id: "custom_rule_2"
+    pattern: '\breturn self\.id\b'
+    replacement: 'return self'
+    description: "Update return statements"
+    enabled: true
+    use_regex: true
+
+xml_patterns:
+  - id: "custom_xml_1"
+    pattern: 'custom_field="old_value"'
+    replacement: 'custom_field="new_value"'
+    description: "Update custom field values"
+    enabled: true
+    use_regex: false
+
+js_patterns:
+  - id: "custom_js_1"
+    pattern: "old_function_name"
+    replacement: "new_function_name"
+    description: "Update JavaScript function names"
+    enabled: true
+    use_regex: false

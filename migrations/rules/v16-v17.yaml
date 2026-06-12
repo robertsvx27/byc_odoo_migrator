@@ -1,0 +1,23 @@
+# Migration rules from Odoo 16.0 to 17.0
+
+version:
+  from: '16.0'
+  to: '17.0'
+
+python_patterns:
+  - id: "models_import"
+    pattern: "from odoo.addons.base.models import ir_model"
+    replacement: "from odoo.addons.base.models import ir_model"
+    description: "Update model imports"
+    enabled: false
+    use_regex: false
+
+xml_patterns:
+  - id: "action_view"
+    pattern: 'type="ir.actions.act_window"'
+    replacement: 'type="ir.actions.act_window"'
+    description: "Update action view definitions"
+    enabled: false
+    use_regex: false
+
+js_patterns: []

@@ -1,0 +1,23 @@
+# Migration rules from Odoo 15.0 to 16.0
+
+version:
+  from: '15.0'
+  to: '16.0'
+
+python_patterns:
+  - id: "browse_ref"
+    pattern: "self.env.ref("
+    replacement: "self.env['ir.model.data'].sudo().get_object_reference("
+    description: "Update reference method"
+    enabled: false
+    use_regex: false
+
+xml_patterns:
+  - id: "record_id"
+    pattern: '<record id="'
+    replacement: '<record id="'
+    description: "Update record definitions"
+    enabled: false
+    use_regex: false
+
+js_patterns: []

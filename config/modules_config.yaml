@@ -1,0 +1,28 @@
+# Module-specific configuration
+
+# Define custom rules for specific modules
+modules:
+  sale:
+    priority: 1
+    rules_file: 'v14-v15.yaml'
+    enabled: true
+
+  account:
+    priority: 2
+    rules_file: 'v14-v15.yaml'
+    enabled: true
+
+  stock:
+    priority: 3
+    rules_file: 'v14-v15.yaml'
+    enabled: true
+
+# Custom module patterns
+custom_patterns:
+  - name: 'custom_report'
+    pattern: '*.py'
+    description: 'Custom reporting module'
+
+  - name: 'custom_widget'
+    pattern: '*.js'
+    description: 'Custom JavaScript widget'

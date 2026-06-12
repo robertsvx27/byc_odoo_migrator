@@ -1,0 +1,32 @@
+# Common migration patterns used across versions
+
+common:
+  python_patterns:
+    - id: "api_decorator"
+      pattern: "@api.one"
+      replacement: "# Removed @api.one decorator - use @api.depends or @api.onchange"
+      description: "Remove deprecated @api.one decorator"
+      enabled: true
+      use_regex: false
+
+    - id: "unicode_compat"
+      pattern: "unicode("
+      replacement: "str("
+      description: "Replace unicode() with str() for Python 3 compatibility"
+      enabled: true
+      use_regex: false
+
+    - id: "super_call"
+      pattern: "super(ClassName, self)"
+      replacement: "super()"
+      description: "Update super() calls to Python 3 style"
+      enabled: true
+      use_regex: true
+
+  xml_patterns:
+    - id: "view_reference"
+      pattern: "ref=\""
+      replacement: "ref=\""
+      description: "Validate view references"
+      enabled: false
+      use_regex: false

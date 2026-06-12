@@ -1,0 +1,32 @@
+# Odoo Migration Configuration
+
+# Default migration settings
+defaults:
+  target_version: '19.0'
+  auto_backup: true
+  backup_dir: './backups'
+  report_dir: './migration_reports'
+  validate_after_migration: true
+
+# Supported Odoo versions
+supported_versions:
+  - '14.0'
+  - '15.0'
+  - '16.0'
+  - '17.0'
+  - '18.0'
+  - '19.0'
+
+# Code analysis settings
+code_analysis:
+  check_syntax: true
+  check_imports: true
+  check_deprecated_apis: true
+  max_line_length: 120
+
+# Logging configuration
+logging:
+  level: 'INFO'
+  file: 'migration.log'
+  max_size_mb: 10
+  backup_count: 5
