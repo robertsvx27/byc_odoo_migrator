@@ -1,0 +1,47 @@
+# Migration rules from Odoo 18.0 to 19.0
+
+version:
+  from_version: '18.0'
+  to_version: '19.0'
+
+python_patterns:
+  - id: "osv_expression"
+    pattern: 'from odoo.osv import expression'
+    replacement: "from odoo.fields import Domain"
+    description: "Update osv.expression to Domain"
+    enabled: true
+    use_regex: false
+  - id: "osv_expression_fields"
+    pattern: 'expression.'
+    replacement: "Domain."
+    description: "Update expression.constant to Domain.Constant"
+    enabled: true
+    use_regex: false
+  - id: "osv_exp_spec_field"
+    pattern: 'Domain.NEGATIVE_TERM_OPERATORS'
+    replacement: "Domain.NEGATIVE_OPERATORS"
+    description: "Update Domain.constant"
+    enabled: true
+    use_regex: false
+  - id: "rename_groups_id"
+    pattern: (?<=[\.\"'])groups_id(?=[\.\s,:)\]'\"])
+    replacement: 'group_ids'
+    description: "rename groups_id to groups_id"
+    enabled: true
+    use_regex: true
+  - id: "rename_hr_contract"
+    pattern: "hr.contract"
+    replacement: 'group_ids'
+    description: "rename groups_id to groups_id"
+    enabled: true
+    use_regex: false
+
+xml_patterns:
+  - id: "rename_groups_id"
+    pattern: (?<=name=[\"'])groups_id(?=[\"'])
+    replacement: 'group_ids'
+    description: "rename groups_id to groups_id"
+    enabled: true
+    use_regex: true
+
+js_patterns: []

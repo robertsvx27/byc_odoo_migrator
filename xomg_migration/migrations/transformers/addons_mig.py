@@ -1,0 +1,186 @@
+#!/usr/bin/env python
+import ast
+import os
+from os.path import join as opj
+from pathlib import Path
+
+from xomg_migration.migrations.transformers import constants
+
+
+# This file was customly adapted from OCA's maintainer tools
+
+def is_module(path):
+    """return False if the path doesn't contain an odoo module, and the full
+    path to the module manifest otherwise"""
+
+    if not os.path.isdir(path):
+        return False
+    files = os.listdir(path)
+    filtered = [x for x in files if x in (constants._MANIFEST_NAMES + ['__init__.py'])]
+    if len(filtered) == 2 and '__init__.py' in filtered:
+        return os.path.join(
+            path, next(x for x in filtered if x != '__init__.py'))
+    else:
+        return False
+
+
+def get_modules(path, depth=2, modules_name=None):
+    """ Return modules of path repo"""
+    return sorted(list(get_modules_info(path, depth,modules_name=modules_name).keys()))
+
+
+def get_modules_info(path:str, depth=1, modules_name=None):
+    """ Return a digest of each installable module's manifest in path repo"""
+    # Avoid empty basename when path ends with slash
+    if not os.path.basename(path):
+        path = os.path.dirname(path)
+
+    modules = {}
+    new_modules = {}
+    if os.path.isdir(path) and depth > 0:
+        dirs = [d for d in os.listdir(path) if os.path.isdir(opj(path, d))]
+        for module in dirs:
+            if module.startswith(".") or module in constants._DEFAULT_EXCLUDED_DIRS:
+                continue
+            manifest_path = is_module(os.path.join(path, module))
+            if manifest_path:
+                manifest = ast.literal_eval(open(manifest_path).read())
+                if manifest.get('installable', True):
+                    modules[module] = {
+                        'application': manifest.get('application'),
+                        'depends': manifest.get('depends') or [],
+                        'auto_install': manifest.get('auto_install'),
+                        'version': manifest.get('version'),
+                        'abs_path': os.path.join(path, module),
+
+                    }
+            else:
+                deeper_modules = get_modules_info(
+                    os.path.join(path, module), depth-1, modules_name)
+                modules.update(deeper_modules)
+
+        if modules_name:
+            for key,values in modules.items():
+                if key in modules_name and key not in new_modules:
+                    new_modules[key]=values
+        else:
+            new_modules = modules
+    return new_modules
+
+def get_resource(path:str, depth=2, resource_type="repo"):
+    if not os.path.basename(path):
+        path = os.path.dirname(path)
+    resources = {}
+    if resource_type == 'module':
+        resources = get_modules_info(path, depth=depth)
+    return resources
+
+def is_addons(path, depth=2, modules_name=None):
+    res = get_modules(path, depth, modules_name=modules_name) != []
+    return res
+
+def is_root_project(path):
+    if not os.path.isdir(path):
+        return False
+    files = os.listdir(path)
+    filtered = [x for x in files if x in constants._ROOT_FILES]
+    if len(filtered) >=1:
+        return True
+    else:
+        return False
+
+def get_directory_addons_project(path,depth=3):
+    result = {}
+    pivot_files = ['__manifest__.py','__init__.py']
+    repositories = []
+    sub_directories = set()
+    for root, dirs, files in os.walk(path):
+        if '.git' in dirs:
+            repositories.append(root)
+            dirs.remove('.git')  # No entrar en .git
+
+    for repo in repositories:
+        for root, dirs, files in os.walk(repo):
+            filtered = [x for x in files if x in pivot_files ]
+            if filtered:
+                current_path = Path(root)
+                parent_folder = current_path.parent
+                # Encontrar a qué repositorio pertenece esta carpeta
+                fs_pivot = [x for x in os.listdir(parent_folder) if x in pivot_files]
+                if parent_folder.is_relative_to(repo) and not fs_pivot:
+                    sub_directories.add(str(parent_folder))
+                    continue
+    return sorted(list(sub_directories))
+
+def get_addons(path, depth=4, add_path=False, modules_name=None):
+    """Return repositories in path. Can search in inner folders as depth."""
+    if not os.path.exists(path) or depth < -1:
+        return []
+    res = []
+    if add_path:
+        res = get_directory_addons_project(path,depth=depth)
+    elif is_addons(path,modules_name=modules_name):
+        res.append(path)
+    else:
+        new_paths = [os.path.join(path, x)
+                     for x in sorted(os.listdir(path))
+                     if os.path.isdir(os.path.join(path, x))]
+        for new_path in new_paths:
+            res.extend(get_addons(new_path, depth-1,modules_name=modules_name))
+    return res
+
+
+def get_dependencies(modules, module_name):
+    """Return a set of all the dependencies in deep of the module_name.
+    The module_name is included in the result."""
+    result = set()
+    for dependency in modules.get(module_name, {}).get('depends', []):
+        result |= get_dependencies(modules, dependency)
+    return result | set([module_name])
+
+
+def get_dependents(modules, module_name):
+    """Return a set of all the modules that are dependent of the module_name.
+    The module_name is included in the result."""
+    result = set()
+    for dependent in modules.keys():
+        if module_name in modules.get(dependent, {}).get('depends', []):
+            result |= get_dependents(modules, dependent)
+    return result | set([module_name])
+
+
+def add_auto_install(modules, to_install):
+    """ Append automatically installed glue modules to to_install if their
+    dependencies are already present. to_install is a set. """
+    found = True
+    while found:
+        found = False
+        for module, module_data in modules.items():
+            if (module_data.get('auto_install') and
+                    module not in to_install and
+                    all(dependency in to_install
+                        for dependency in module_data.get('depends', []))):
+                found = True
+                to_install.add(module)
+    return to_install
+
+
+def get_applications_with_dependencies(modules):
+    """ Return all modules marked as application with their dependencies.
+    For our purposes, l10n modules cannot be an application. """
+    result = set()
+    for module, module_data in modules.items():
+        if module_data.get('application') and not module.startswith('l10n_'):
+            result |= get_dependencies(modules, module)
+    return add_auto_install(modules, result)
+
+
+def get_localizations_with_dependents(modules):
+    """ Return all localization modules with the modules that depend on them
+    """
+    result = set()
+    for module in modules.keys():
+        if module.startswith('l10n_'):
+            result |= get_dependents(modules, module)
+    return result
+
