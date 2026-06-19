@@ -9,7 +9,7 @@ python_patterns:
     pattern: "from odoo.addons.base.models import ir_model"
     replacement: "from odoo.addons.base.models import ir_model"
     description: "Update model imports"
-    enabled: false
+    enabled: true
     use_regex: false
 
 xml_patterns:
@@ -17,7 +17,33 @@ xml_patterns:
     pattern: 'type="ir.actions.act_window"'
     replacement: 'type="ir.actions.act_window"'
     description: "Update action view definitions"
-    enabled: false
+    enabled: true
     use_regex: false
-
+  - id: "delete_widget1"
+    pattern: 'widget="mail_followers"'
+    replacement: ''
+    description: ""
+    enabled: true
+    use_regex: false
+  - id: "delete_widget2"
+    pattern: 'widget="mail_activity"'
+    replacement: ''
+    action: 'replace'
+    description: ""
+    enabled: true
+    use_regex: false
+  - id: "delete_widget3"
+    pattern: 'widget="mail_thread"'
+    replacement: ''
+    description: ""
+    action: 'replace'
+    enabled: true
+    use_regex: false
+  - id: "delete_tag"
+    pattern: 'menuitem,string'
+    replacement: ''
+    description: ""
+    action: 'delete_attr'
+    enabled: true
+    use_regex: true
 js_patterns: []

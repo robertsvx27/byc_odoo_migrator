@@ -1,17 +1,17 @@
 """Main migration engine orchestrator."""
 
-import os
-import yaml
 import json
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+import os
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional, Any
 
+from xomg_migration.migrations.engine.migrator_engine_rule import MigratorEngineRules
+from xomg_migration.migrations.transformers import tools
 from xomg_migration.migrations.transformers.constants import SUPPORTED_VERSIONS, _DEFAULT_EXCLUDED_DIRS
+from xomg_migration.migrations.transformers.javascript_transformer import JavaScriptTransformer
 from xomg_migration.migrations.transformers.python_transformer import PythonTransformer
 from xomg_migration.migrations.transformers.xml_transformer import XMLTransformer
-from xomg_migration.migrations.transformers.javascript_transformer import JavaScriptTransformer
-from xomg_migration.migrations.transformers import tools
 
 
 class MigrationReport:
@@ -119,29 +119,44 @@ class OdooMigrationEngine:
         self.python_transformer = PythonTransformer(self.dry_run)
         self.xml_transformer = XMLTransformer(self.dry_run)
         self.javascript_transformer = JavaScriptTransformer(self.dry_run)
-        self.migration_rules = self._load_migration_rules()
-        if self.props.get('custom_rules_dir', {}):
-            self.custom_migration_rules = self._load_migration_rules(self.props.get('custom_rules_dir', {}))
-        else:
-            self.custom_migration_rules = {}
+        # self.migration_rules = self._load_migration_rules()
+        path_rules = self.props.get('path_rules', False)
+        self.migration_rules = None
+        self._load_migration_rules(path_rules)
+        #self.migrator_rules = {} # self._load_migrator_rule()
+        # if self.props.get('custom_rules_dir', {}):
+        #    self.custom_migration_rules = self._load_migration_rules(self.props.get('custom_rules_dir', {}))
+        #else:
+        #    self.custom_migration_rules = {}
 
-    
-    def _load_migration_rules(self,path_rules=None) -> Dict[str, List[Dict[str, Any]]]:
+    def _load_migrator_rule(self,path_rules=None)-> MigratorEngineRules:
+        if path_rules:
+            path_rules = Path(path_rules)
+            rules_dir = Path(path_rules.resolve(strict=True))
+
+        else:
+            rules_dir = Path(__file__).parent.parent / 'rules'
+        mg_rules = MigratorEngineRules([str(rules_dir)])
+        return mg_rules
+
+    def _load_migration_rules(self,path_rules=None):
         """Load migration rules from YAML files."""
-        rules = {}
+        # rules = {}
         if path_rules:
             path_rules = Path(path_rules)
             rules_dir =Path(path_rules.resolve(strict=True))
 
         else:
             rules_dir = Path(__file__).parent.parent / 'rules'
-        
-        if rules_dir.exists():
-            for rule_file in rules_dir.glob('*.yaml'):
-                with open(rule_file, 'r') as f:
-                    rules[rule_file.stem] = yaml.safe_load(f) or {}
-        
-        return rules
+        #
+        # if rules_dir.exists():
+        #     for rule_file in rules_dir.glob('*.yaml'):
+        #         with open(rule_file, 'r') as f:
+        #             rules[rule_file.stem] = yaml.safe_load(f) or {}
+        #
+        # return rules
+        self.migration_rules = MigratorEngineRules([str(rules_dir)])
+
     
     def migrate_module(self, module_path: str
                        , from_version: str
@@ -211,30 +226,49 @@ class OdooMigrationEngine:
     def _transform_python_file(self, file_path: str, from_version: str, to_version: str, report: MigrationReport):
         """Transform a Python file."""
         rule_key = f"v{from_version.replace('.', '')}-v{to_version.replace('.', '')}"
-        rules = self.migration_rules.get(rule_key, {}).get('python_patterns', [])
-        
-        changes = self.python_transformer.transform(file_path, rules)
-        if changes:
-            report.add_change(file_path, 'python', changes)
+        # rules = self.migration_rules.get(rule_key, {}).get('python_patterns', [])
+        # rules = self.migrator_rules.rules.get(rule_key, {}).get('python_patterns', [])
+        lang_pt = 'python_patterns'
+        target_list = getattr(self.migration_rules.rules[rule_key], lang_pt)
+        if target_list:
+            changes = self.python_transformer.transform(file_path, target_list)
+            if changes:
+                report.add_change(file_path, 'python', changes)
     
     def _transform_xml_file(self, file_path: str, from_version: str, to_version: str, report: MigrationReport):
         """Transform an XML file."""
         rule_key = f"v{from_version.replace('.', '')}-v{to_version.replace('.', '')}"
-        rules = self.migration_rules.get(rule_key, {}).get('xml_patterns', [])
-        
-        changes = self.xml_transformer.transform(file_path, rules)
-        if changes:
-            report.add_change(file_path, 'xml', changes)
-    
+        #rules = self.migration_rules.get(rule_key, {}).get('xml_patterns', [])
+
+        # rules = self.migrator_rules.rules.get(rule_key, {}).get('xml_patterns', [])
+        # if rules:
+        #     changes = self.xml_transformer.transform(file_path, rules)
+        #     if changes:
+        #         report.add_change(file_path, 'xml', changes)
+
+        lang_pt = 'xml_patterns'
+        target_list = getattr(self.migration_rules.rules[rule_key], lang_pt)
+        if target_list:
+            changes = self.xml_transformer.transform(file_path, target_list)
+            if changes:
+                report.add_change(file_path, 'xml', changes)
+
     def _transform_javascript_file(self, file_path: str, from_version: str, to_version: str, report: MigrationReport):
         """Transform a JavaScript file."""
         rule_key = f"v{from_version.replace('.', '')}-v{to_version.replace('.', '')}"
-        rules = self.migration_rules.get(rule_key, {}).get('js_patterns', [])
-        
-        changes = self.javascript_transformer.transform(file_path, rules)
-        if changes:
-            report.add_change(file_path, 'javascript', changes)
-    
+        # rules = self.migration_rules.get(rule_key, {}).get('js_patterns', [])
+        # rules = self.migrator_rules.rules.get(rule_key, {}).get('js_patterns', [])
+        # if rules:
+        #     changes = self.javascript_transformer.transform(file_path, rules)
+        #     if changes:
+        #         report.add_change(file_path, 'javascript', changes)
+        lang_pt = 'js_patterns'
+        target_list = getattr(self.migration_rules.rules[rule_key], lang_pt)
+        if target_list:
+            changes = self.javascript_transformer.transform(file_path, target_list)
+            if changes:
+                report.add_change(file_path, 'js', changes)
+
     def save_report(self, report: MigrationReport, output_dir: str = 'migration_reports'):
         """Save migration report to JSON file."""
         os.makedirs(output_dir, exist_ok=True)

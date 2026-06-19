@@ -8,10 +8,10 @@ from pprint import pprint
 import argcomplete
 from colorama import Fore
 
-from migrations.engine.rule_loader import FileType
-from .migrations.engine.migration_engine import OdooMigrationEngine
-from .migrations.transformers import tools, constants
-from .migrations.transformers.exception import ConfigException
+from xomg_migration.migrations.engine.migration_engine import OdooMigrationEngine
+from xomg_migration.migrations.engine.migration_rule import FileType
+from xomg_migration.migrations.transformers import tools, constants
+from xomg_migration.migrations.transformers.exception import ConfigException
 
 
 def get_parser():

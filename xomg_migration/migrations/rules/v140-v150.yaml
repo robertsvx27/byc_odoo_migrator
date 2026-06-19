@@ -30,6 +30,7 @@ xml_patterns:
   - id: "field_widget_update"
     pattern: '<field.*widget="many2many_tags"'
     replacement: '<field widget="many2many_tags_char"'
+    enabled: true
 
   - id: "field_domain"
     pattern: 'domain=\"\['
@@ -38,12 +39,14 @@ xml_patterns:
     enabled: false
     use_regex: false
 
-javascript_patterns:
+js_patterns:
   - id: "odoo_define_update"
     pattern: "odoo\\.define\\("
     replacement: "define("
+    enabled: false
 
 sql_patterns:
   - id: "table_rename"
     pattern: "ALTER TABLE sale_order RENAME TO sale_order_backup;"
     description: "Backup of old sale_order table structure"
+    enabled: false

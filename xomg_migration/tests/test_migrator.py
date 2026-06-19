@@ -5,8 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from migrations.engine.migration_engine import OdooMigrationEngine, MigrationReport
-from migrations.transformers.constants import SUPPORTED_VERSIONS
+from xomg_migration.migrations.engine.migration_engine import OdooMigrationEngine, MigrationReport
+from xomg_migration.migrations.transformers.constants import SUPPORTED_VERSIONS
 
 
 class TestMigrationReport:
@@ -58,7 +58,7 @@ class TestOdooMigrationEngine:
     def test_supported_versions(self):
         """Test supported versions."""
         engine = OdooMigrationEngine()
-        assert '14.0' in SUPPORTED_VERSIONS
+        assert '13.0' in SUPPORTED_VERSIONS
         assert '19.0' in SUPPORTED_VERSIONS
 
     def test_migrate_invalid_source_version(self):

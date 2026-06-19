@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Dict, List, Any, Optional, Tuple
 from abc import ABC, abstractmethod
 
-from migrations.engine.rule_loader import MigrationRule
+from xomg_migration.migrations.engine.migration_rule import MigrateRule
 
 
 class BaseTransformer(ABC):
@@ -16,11 +16,11 @@ class BaseTransformer(ABC):
         self.dry_run = dry_run
 
     @abstractmethod
-    def transform(self, file_path: str, rules: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def transform(self, file_path: str, rules: List[MigrateRule]) -> List[Dict[str, Any]]:
         """Transform a file according to rules."""
         pass
     
-    def _apply_pattern_replacement(self, content: str, rule: MigrationRule) -> tuple:
+    def _apply_pattern_replacement(self, content: str, rule: MigrateRule) -> tuple:
         """Apply pattern replacement to content."""
         changes = []
         
@@ -86,3 +86,4 @@ class BaseTransformer(ABC):
                 })
             return result, changes
         return content, changes
+

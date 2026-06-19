@@ -1,7 +1,7 @@
 
 
 
-SUPPORTED_VERSIONS = ['14.0', '15.0', '16.0', '17.0', '18.0', '19.0']
+SUPPORTED_VERSIONS = ['13.0','14.0', '15.0', '16.0', '17.0', '18.0', '19.0']
 
 _ALLOWED_EXTENSIONS = [".py", ".xml", ".js", ".csv", ".sql"]
 
