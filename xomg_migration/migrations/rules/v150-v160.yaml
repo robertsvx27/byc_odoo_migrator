@@ -4,14 +4,7 @@ version:
   from_version: '15.0'
   to_version: '16.0'
 
-python_patterns:
-  - id: "browse_ref"
-    pattern: "self.env.ref("
-    replacement: "self.env['ir.model.data'].sudo().get_object_reference("
-    description: "Update reference method"
-    enabled: false
-    use_regex: false
-
+python_patterns: []
 xml_patterns:
   - id: "record_id"
     pattern: '<record id="'

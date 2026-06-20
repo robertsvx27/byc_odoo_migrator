@@ -1,0 +1,93 @@
+# Migration rules from Odoo 17.0 to 18.0
+
+version:
+  from_version: '13.0'
+  to_version: '14.0'
+
+python_patterns:
+  - id: "change module name"
+    pattern: hospital.*managment\.
+    replacement: 'byc_mcm.'
+    description: "Rename module"
+    enabled: false
+    use_regex: true
+  - id: "update format models"
+    pattern: class\s([a-z_]+)
+    replacement: ''
+    description: "update format models"
+    action: 'format_class'
+    enabled: false
+    use_regex: true
+  - id: "update_xml_ref"
+    pattern: 'imd.xmlid_to_object('
+    replacement: 'self.env.ref('
+    description: ""
+    action: 'replace'
+    enabled: true
+    use_regex: false
+  - id: "upd_model_xml_ref"
+    pattern: (self\.env)\[.*(\(.*byc_mcm\.*)
+    replacement: "\\1.ref\\2"
+    description: ""
+    action: 'replace'
+    enabled: true
+    use_regex: true
+  - id: "upd_model_xml_ref"
+    pattern: (self\.env)\[.*(\(.*byc_mcm\.*)
+    replacement: "\\1.ref\\2"
+    description: ""
+    action: 'format_class'
+    enabled: true
+    use_regex: false
+  - id: "super_call"
+    pattern: (super\().*self(.*)
+    replacement: "super(\\2"
+    description: "Update super() calls to Python 3 style"
+    action: 'replace'
+    enabled: true
+    use_regex: true
+  - id: "remove_xmlid_to_res_id"
+    pattern: 'imd.xmlid_to_res_id('
+    replacement: "self.env.ref("
+    description: "Update super() calls to Python 3 style"
+    action: 'replace'
+    enabled: true
+    use_regex: false
+xml_patterns:
+  - id: "migrate report view"
+    pattern: 'migrate_report'
+    replacement: ''
+    description: "migrate report view"
+    action: 'change_view'
+    enabled: false
+    use_regex: true
+  - id: "migrate action view"
+    pattern: 'migrate_act_window'
+    replacement: ''
+    description: "migrate action view"
+    action: 'change_view'
+    enabled: true
+    use_regex: true
+  - id: "migrate_act_window"
+    pattern: |
+      <act_window
+          \s+id="([^"]+)"
+          \s+name="([^"]+)"
+          \s+res_model="([^"]+)"
+          \s+binding_model="([^"]+)"
+          (?:\s+view_mode="([^"]+)")?
+          (?:\s+target="([^"]+)")?
+          \s*/>
+    replacement: |
+      <record model="ir.actions.act_window" id="\1">
+          <field name="name">\2</field>
+          <field name="res_model">\3</field>
+          <field name="view_mode">\5</field>
+          <field name="target">\6</field>
+          <field name="binding_model_id" ref="byc_mcm.model_\4"/>
+      </record>
+    description: "migrate act_window"
+    action: 'replace'
+    enabled: true
+    use_regex: true
+js_patterns: []

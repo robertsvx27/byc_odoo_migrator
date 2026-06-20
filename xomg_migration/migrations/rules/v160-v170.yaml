@@ -46,4 +46,11 @@ xml_patterns:
     action: 'delete_attr'
     enabled: true
     use_regex: true
+  - id: "format_tree_state"
+    pattern: 'tree_state_prop'
+    replacement: ''
+    description: ""
+    action: 'format_view_170'
+    enabled: true
+    use_regex: true
 js_patterns: []

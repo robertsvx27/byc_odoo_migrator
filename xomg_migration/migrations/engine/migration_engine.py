@@ -234,7 +234,15 @@ class OdooMigrationEngine:
             changes = self.python_transformer.transform(file_path, target_list)
             if changes:
                 report.add_change(file_path, 'python', changes)
-    
+
+    def _fast_transform_python_file(self,content,version):
+        rule_key = 'common_patterns'
+        if isinstance(float, version):
+            nro_version = int(version)
+            from_version = str(nro_version - 1)+"0"
+            to_version = str(nro_version)+"0"
+            rule_key = f"v{from_version}-v{to_version}"
+
     def _transform_xml_file(self, file_path: str, from_version: str, to_version: str, report: MigrationReport):
         """Transform an XML file."""
         rule_key = f"v{from_version.replace('.', '')}-v{to_version.replace('.', '')}"

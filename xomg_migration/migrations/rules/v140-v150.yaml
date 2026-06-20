@@ -7,11 +7,10 @@ version:
 python_patterns:
   - id: "api_onchange_rename"
     pattern: '@api\.onchange\((.+?)\)'
-    replacement: '@onchange(\1)'
+    replacement: "@onchange(\\1)"
     description: "Rename api.onchange to onchange"
     enabled: true
     use_regex: false
-
   - id: "html_escape"
     pattern: "from openerp.tools import html_escape"
     replacement: "from markupsafe import escape as html_escape"
@@ -20,20 +19,19 @@ python_patterns:
     use_regex: false
 
   - id: "env_removal"
-    pattern: 'self\.env\.cr\.execute\('
+    pattern: self\.env\.cr\.execute\(
     replacement: 'self.env.execute_sql('
     files_match: "*.py"
     enabled: true
     use_regex: false
-
 xml_patterns:
   - id: "field_widget_update"
-    pattern: '<field.*widget="many2many_tags"'
+    pattern: <field\.*widget=\"many2many_tags\"
     replacement: '<field widget="many2many_tags_char"'
     enabled: true
 
   - id: "field_domain"
-    pattern: 'domain=\"\['
+    pattern: domain=\"\[
     replacement: 'domain="['
     description: "Update XML domain format"
     enabled: false
@@ -41,7 +39,7 @@ xml_patterns:
 
 js_patterns:
   - id: "odoo_define_update"
-    pattern: "odoo\\.define\\("
+    pattern: odoo\.define\(
     replacement: "define("
     enabled: false
 
