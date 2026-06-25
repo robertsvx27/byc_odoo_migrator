@@ -1,0 +1,217 @@
+import ast
+import json
+import re
+from abc import ABC
+from io import BytesIO
+from typing import List, Dict, Any
+
+from lxml import etree
+
+from xomg_migration.migrations.engine.migration_rule import MigrateRule
+from xomg_migration.migrations.transformers import tools
+from xomg_migration.migrations.transformers.base_transformer import BaseTransformer
+from xomg_migration.migrations.transformers.python_transformer import PythonTransformer
+
+
+def _migrate_expression_to_domain(logger,base_path,module_name=None,dry_run=False):
+    """Convert odoo.osv.expression usage to odoo.fields.Domain"""
+    if module_name:
+        module_path = module_name
+    else:
+        module_path = base_path
+    files_to_process = tools.get_files(module_path, (".py",))
+
+    for file in files_to_process:
+        try:
+            content = tools._read_content(file)
+            original_content = content
+
+            content = re.sub(
+                r"from odoo\.osv import expression",
+                "from odoo.fields import Domain",
+                content,
+            )
+
+            content = re.sub(
+                r"from odoo\.osv\.expression import (AND|OR|AND, OR|OR, AND)",
+                "from odoo.fields import Domain",
+                content,
+            )
+
+            content = re.sub(r"expression\.AND\(", "Domain.AND(", content)
+            content = re.sub(r"expression\.OR\(", "Domain.OR(", content)
+
+            content = re.sub(r"(?<!\.)AND\(", "Domain.AND(", content)
+            content = re.sub(r"(?<!\.)OR\(", "Domain.OR(", content)
+
+            content = re.sub(
+                r"from odoo\.fields import Domain, (AND|OR|AND, OR|OR, AND)",
+                "from odoo.fields import Domain",
+                content,
+            )
+
+            lines = content.split("\n")
+            seen_domain_import = False
+            cleaned_lines = []
+
+            for line in lines:
+                if line.strip() == "from odoo.fields import Domain":
+                    if not seen_domain_import:
+                        cleaned_lines.append(line)
+                        seen_domain_import = True
+                else:
+                    cleaned_lines.append(line)
+
+            content = "\n".join(cleaned_lines)
+
+            if content != original_content:
+                if dry_run:
+                    print(f"******Not persistence Migrated expression imports to Domain in: {file}")
+                else:
+                    # print(f"Migrated expression imports to Domain in: {file}")
+                    tools._write_content(file, content)
+                #logger.info(f"Migrated expression imports to Domain in: {file}")
+
+        except Exception as e:
+            print(f"Error processing file {file}: {str(e)}")
+            #logger.error(f"Error processing file {file}: {str(e)}")
+
+    return True
+
+def _upgrade_sql_constraints(logger,base_path,module_name=None,dry_run=False):
+    # Odoo method in which we migrate all occurrences of _sql_constraints
+    if module_name:
+        module_path = module_name
+    else:
+        module_path = base_path
+    files_to_process = tools.get_files(module_path, (".py",))
+    # Regex pattern explanation:
+    # (?m) - Multiline mode, ^ matches start of each line
+    # ^(?![ \t]*#) - Negative lookahead: exclude lines starting with # (comments)
+    # ([ \t]*) - Capture group 1: leading spaces/tabs (NOT newlines to avoid extra blank lines)
+    # \b_sql_constraints\s*=\s*\[ - Match "_sql_constraints = ["
+    # ([^\]]+) - Capture group 2: constraint content (everything until the closing bracket)
+    # ] - Match closing bracket
+    # re.DOTALL - Allow . to match newlines for multi-line constraints
+    sql_expression_re = re.compile(
+        r"(?m)^(?![ \t]*#)([ \t]*)\b_sql_constraints\s*=\s*\[([^\]]+)]", re.DOTALL
+    )
+    ind = " " * 4
+
+    # Function to build the new SQL constraint definition
+    def build_sql_object(match):
+        # Preserve the original indentation level (e.g., 2 spaces, 4 spaces, 8 spaces for nested classes)
+        leading_indent = match.group(1)
+        constraints = ast.literal_eval("[" + match.group(2) + "]")
+        result = []
+        for name, definition, *messages in constraints:
+            message = messages[0] if messages else ""
+            constructor = "Constraint"
+            if message:
+                # format on 2 lines
+                message_repr = json.dumps(
+                    message, ensure_ascii=False
+                )  # so that the message is in double quotes
+                args = f"\n{ind * 2}{definition!r},\n{ind * 2}{message_repr},\n{ind}"
+            elif len(definition) > 60:
+                args = f"\n{ind * 2}{definition!r}"
+            else:
+                args = repr(definition)
+            result.append(f"{leading_indent}_{name} = models.{constructor}({args})")
+        return "\n".join(result)
+
+    # Process each file
+    for file in files_to_process:
+        content = tools._read_content(file)
+        content = sql_expression_re.sub(build_sql_object, content)
+        if sql_expression_re.search(content):
+            #logger.warning("Failed to replace sql_constraints")
+            print ("Failed to replace sql_constraints")
+        if not dry_run:
+            tools._write_content(file, content)
+        else:
+            print(f"******Not persistence Migrated constraints: {file}")
+    return True
+
+
+def _remove_group_attrs_in_search_views(logger,base_path,module_name=None,dry_run=False):
+    """Remove `expand` and `string` attributes from <group> tags when they
+    are inside a <search> view.
+    """
+    if module_name:
+        module_path = module_name
+    else:
+        module_path = base_path
+    files_to_process = tools.get_files(module_path, (".xml",))
+
+    for file_path in files_to_process:
+        try:
+            content = tools._read_content(file_path)
+            parser = etree.XMLParser(recover=True)
+            try:
+                # lxml does not accept unicode strings with XML declaration,
+                # so parse from bytes to be safe.
+                tree = etree.parse(BytesIO(content.encode("utf-8")), parser)
+                root = tree.getroot()
+            except Exception:
+                # If full-parse fails, skip this file
+                continue
+
+            changed = False
+
+            # Find all <search> elements and remove expand/string from <group> children
+            for search in root.findall(".//search"):
+                for group in search.findall(".//group"):
+                    for attr in ("expand", "string"):
+                        if attr in group.attrib:
+                            del group.attrib[attr]
+                            changed = True
+
+            if changed:
+                # Write back modified tree
+                new_content = etree.tostring(
+                    root, encoding="utf-8", xml_declaration=True
+                ).decode("utf-8")
+                new_content = new_content.replace(
+                    "<?xml version='1.0' encoding='utf-8'?>",
+                    '<?xml version="1.0" encoding="utf-8"?>',
+                )
+                if not new_content.endswith("\n"):
+                    new_content += "\n"
+                if not dry_run:
+                    tools._write_content(file_path, new_content)
+                #print(
+                #    f"Removed expand/string attrs from <group> in search views: {file_path}"
+                #)
+
+        except Exception as e:
+            print(f"Error processing XML file {file_path}: {e}")
+    return True
+
+
+# class MigTransformerScript(PythonTransformer):
+#
+#     # def __init__(self, dry_run: bool = False):
+#     #     super().__init__(dry_run)
+#
+#     def migrate_file(self, file_path: str, rule_key: str) -> bool:
+#         """Transform a file according to rules."""
+#         self._action_method = 'migrate_file'
+#         # method = self._get_adapter_method(rule_key.replace("-","_"))
+#         #return method(file_path)
+#         return super().migrate_file(file_path,rule_key)
+#
+#     def migrate_file_v180_v190(self, base_path, module_name=None) -> bool:
+#         #_migrate_expression_to_domain(base_path, module_name,self.dry_run)
+#         _upgrade_sql_constraints(base_path,module_name,self.dry_run)
+#         #_remove_group_attrs_in_search_views(base_path,module_name,self.dry_run)
+#         return True
+
+
+def migrate_file_v180_v190(env, base_path, module_name=None) -> bool:
+    _migrate_expression_to_domain(env._logger,base_path, module_name,env.dry_run)
+    _upgrade_sql_constraints(env._logger,base_path,module_name,env.dry_run)
+    _remove_group_attrs_in_search_views(env._logger,base_path,module_name,env.dry_run)
+    return True
+
+PythonTransformer.migrate_file_v180_v190 = migrate_file_v180_v190

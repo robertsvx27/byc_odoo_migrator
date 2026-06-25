@@ -4,6 +4,20 @@ version:
   from_version: '17.0'
   to_version: '18.0'
 
-python_patterns: []
-xml_patterns: []
+python_patterns:
+  - id: "change_prd_type1"
+    pattern: \('type',\s+'=',\s+'product'\)
+    replacement: "('is_storable', '=', True)"
+    description: ""
+    action: 'replace'
+    enabled: true
+    use_regex: true
+xml_patterns:
+  - id: "change_prd_type"
+    pattern: \('type',\s+'=',\s+'product'\)
+    replacement: "('is_storable', '=', True)"
+    description: ""
+    action: 'replace'
+    enabled: true
+    use_regex: true
 js_patterns: []

@@ -43,5 +43,10 @@ xml_patterns:
     description: "rename groups_id to groups_id"
     enabled: true
     use_regex: true
-
+  - id: "rename_payment_state"
+    pattern: ([\"']account\.payment[\"'].*)(\('state'.*'posted'\))
+    replacement: "\\1('state','=','paid')"
+    description: "rename_payment_state"
+    enabled: true
+    use_regex: true
 js_patterns: []

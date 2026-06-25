@@ -6,10 +6,9 @@ from xomg_migration.migrations.engine.migration_rule import MigrateRule
 from xomg_migration.migrations.transformers.base_transformer import BaseTransformer
 
 
-
 class PythonTransformer(BaseTransformer):
     """Transform Python code files."""
-    
+
     def transform(self, file_path: str, rules: List[MigrateRule]) -> List[Dict[str, Any]]:
         """Transform Python file according to rules."""
         try:
@@ -40,3 +39,10 @@ class PythonTransformer(BaseTransformer):
 
     def _action_change_model_name(self,content,pattern,replacement):
         pass
+
+    def migrate_file(self, file_path: str, rule_key: str) -> bool:
+        """Transform a file according to rules."""
+        print(' migrating file', rule_key)
+        self._action_method = 'migrate_file'
+        method = self._get_adapter_method(rule_key.replace("-", "_"))
+        return method(file_path)

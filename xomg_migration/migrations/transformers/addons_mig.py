@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import ast
 import os
+import re
 from os.path import join as opj
 from pathlib import Path
+from typing import Tuple
 
 from xomg_migration.migrations.transformers import constants
 
@@ -29,14 +31,22 @@ def get_modules(path, depth=2, modules_name=None):
     return sorted(list(get_modules_info(path, depth,modules_name=modules_name).keys()))
 
 
-def get_modules_info(path:str, depth=1, modules_name=None):
+def get_modules_info(path:str, depth=1, modules_name=None,file_types=None,file_patterns=None,
+                     exc_modules=None, exc_dirs=None):
     """ Return a digest of each installable module's manifest in path repo"""
     # Avoid empty basename when path ends with slash
+    if not file_types:
+        file_types = {}
+    if not file_patterns:
+        file_patterns = {}
+    if not exc_modules:
+        exc_modules = {}
+    if not exc_dirs:
+        exc_dirs = {}
     if not os.path.basename(path):
         path = os.path.dirname(path)
 
     modules = {}
-    new_modules = {}
     if os.path.isdir(path) and depth > 0:
         dirs = [d for d in os.listdir(path) if os.path.isdir(opj(path, d))]
         for module in dirs:
@@ -51,21 +61,15 @@ def get_modules_info(path:str, depth=1, modules_name=None):
                         'depends': manifest.get('depends') or [],
                         'auto_install': manifest.get('auto_install'),
                         'version': manifest.get('version'),
-                        'abs_path': os.path.join(path, module),
-
+                        'full_path': os.path.join(path, module),
+                        'name': module,
                     }
             else:
                 deeper_modules = get_modules_info(
                     os.path.join(path, module), depth-1, modules_name)
                 modules.update(deeper_modules)
 
-        if modules_name:
-            for key,values in modules.items():
-                if key in modules_name and key not in new_modules:
-                    new_modules[key]=values
-        else:
-            new_modules = modules
-    return new_modules
+    return modules
 
 def get_resource(path:str, depth=2, resource_type="repo"):
     if not os.path.basename(path):
@@ -184,3 +188,15 @@ def get_localizations_with_dependents(modules):
             result |= get_dependents(modules, module)
     return result
 
+
+def matches_dir_pattern(self, dir_path: Path) -> Tuple[bool, str]:
+    """Verifica si un directorio coincide con algún patrón de exclusión"""
+    dir_name = dir_path.name
+
+    for pattern in self.exclude_dir_patterns:
+        # Convertir patrón glob a regex simple
+        regex_pattern = pattern.replace('*', '.*')
+        if re.match(regex_pattern, dir_name, re.IGNORECASE):
+            return True, f"pattern:{pattern}"
+
+    return False, ''

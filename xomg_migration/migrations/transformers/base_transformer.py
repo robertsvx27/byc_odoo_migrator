@@ -1,12 +1,11 @@
 """Base transformer class."""
-
+import logging
 import re
 from enum import Enum
 from typing import Dict, List, Any, Optional, Tuple
 from abc import ABC, abstractmethod
-
 from xomg_migration.migrations.engine.migration_rule import MigrateRule
-
+from ..log import logger
 
 class BaseTransformer(ABC):
     """Base class for code transformers."""
@@ -14,12 +13,20 @@ class BaseTransformer(ABC):
     def __init__(self, dry_run:bool=False):
         self.changes = []
         self.dry_run = dry_run
+        self._action_method = None
+        self._logger = logger
 
     @abstractmethod
     def transform(self, file_path: str, rules: List[MigrateRule]) -> List[Dict[str, Any]]:
         """Transform a file according to rules."""
         pass
-    
+
+    def migrate_file(self, file_path: str, rule_key: str) -> bool:
+        """Transform a file according to rules."""
+        # self._action_method = 'migrate_file'
+        method = self._get_adapter_method(rule_key.replace("-","_"))
+        return method(file_path)
+
     def _apply_pattern_replacement(self, content: str, rule: MigrateRule) -> tuple:
         """Apply pattern replacement to content."""
         changes = []
@@ -87,3 +94,22 @@ class BaseTransformer(ABC):
             return result, changes
         return content, changes
 
+
+    def _get_adapter_method(self, method_sufix):
+
+        method = "{}_{}".format(self._action_method,method_sufix)
+
+        try:
+            return getattr(self, method)
+        except AttributeError:
+            raise NotImplementedError(
+
+                    '"%(method)s" method not found, check that all assets are installed '
+                    "for the %(transform)s transfomer type.".format(
+                    method=method,
+                    transform='migrate_file'),
+                           ) from AttributeError
+
+
+    def __enter__(self):
+        return self

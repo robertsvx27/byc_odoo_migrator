@@ -80,6 +80,7 @@ class MigratorEngineRules:
                                            description=description,
                                            enabled=values.get('enabled',True),
                                            use_regex=use_regex,
+                                           version=file_name,
                                            flags=flags)
                         if file_name not in self.rules:
                             # _rules_raw[rule_type] = []

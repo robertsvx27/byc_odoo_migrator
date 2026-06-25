@@ -25,6 +25,8 @@ class ActionType(Enum):
 class FileType(Enum):
     PYTHON = ".py"
     XML = ".xml"
+    SQL = ".sql"
+    JS = ".js"
     VIEW = "_view.xml"
     MODEL = ".py"
     SECURITY = "_security.xml"
