@@ -42,7 +42,7 @@ class PythonTransformer(BaseTransformer):
 
     def migrate_file(self, file_path: str, rule_key: str) -> bool:
         """Transform a file according to rules."""
-        print(' migrating file', rule_key)
+        # print(' migrating file', rule_key)
         self._action_method = 'migrate_file'
         method = self._get_adapter_method(rule_key.replace("-", "_"))
         return method(file_path)

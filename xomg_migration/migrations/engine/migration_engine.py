@@ -63,9 +63,10 @@ class OdooMigrationEngine:
 
 
         print("=" * 70)
-        print("📋 MIGRACIÓN DE MANIFEST FILES Odoo 14 → 17")
+        print("📋 MIGRACIÓN DE MANIFEST FILES Odoo desde 13 → 19")
         print("=" * 70)
         print(f"🔧 Modo: {'DRY RUN' if self.dry_run else 'LIVE'}")
+        print(f"🔧 El log que se mostrara sera de los archivos actualizados y con error")
         print("-" * 70)
         path_rules = self.props.get('path_rules', False)
         self._load_migration_rules(path_rules)
@@ -74,9 +75,11 @@ class OdooMigrationEngine:
         #    module_migration.run()
         modules_addons = self._modules_path
         for i, (key, module) in enumerate(modules_addons.items(), 1):
-            print(f"\n[{i}/{len(modules_addons)}] 📄 {module.get('full_path')}")
 
-            self.migrate_module(module)
+            report = self.migrate_module(module)
+            if report.status in ['failed','success']:
+                print(f"\n[{i}/{len(modules_addons)}] 📄\t{module.get('full_path')}")
+
             # self.results['processed'] += 1
 
     def find_manifests(self) -> List[Path]:

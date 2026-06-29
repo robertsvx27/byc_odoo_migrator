@@ -20,7 +20,7 @@ common:
       replacement: "super(\\2"
       description: "Update super() calls to Python 3 style"
       action: 'replace'
-      enabled: true
+      enabled: false
       use_regex: true
 
   xml_patterns:

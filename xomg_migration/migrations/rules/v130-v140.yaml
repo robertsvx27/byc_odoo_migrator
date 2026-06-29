@@ -30,21 +30,21 @@ python_patterns:
     replacement: "\\1.ref\\2"
     description: ""
     action: 'replace'
-    enabled: true
+    enabled: false
     use_regex: true
   - id: "upd_model_xml_ref"
     pattern: (self\.env)\[.*(\(.*byc_mcm\.*)
     replacement: "\\1.ref\\2"
     description: ""
     action: 'format_class'
-    enabled: true
+    enabled: false
     use_regex: false
   - id: "super_call"
     pattern: (super\().*self(.*)
     replacement: "super(\\2"
     description: "Update super() calls to Python 3 style"
     action: 'replace'
-    enabled: true
+    enabled: false
     use_regex: true
   - id: "remove_xmlid_to_res_id"
     pattern: 'imd.xmlid_to_res_id('

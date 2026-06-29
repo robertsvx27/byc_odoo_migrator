@@ -66,27 +66,33 @@ class MigratorEngineRules:
                         continue
                     if not rule_data:
                         continue
-                    for values in rule_data:
-                        action = ActionType(values.get('action', 'replace'))
-                        flags = re.RegexFlag(values.get('flags', 0))
-                        patron = values.get('pattern','')
-                        reemplazo = values.get('replacement','')
-                        description = values.get('description', values.get('id','N.M'))
-                        use_regex = values.get('use_regex', False)
-                        # print('rule',values.get('description'), file_name)
-                        rule = MigrateRule(pattern=patron,
-                                           action=action,
-                                           replacement=reemplazo,
-                                           description=description,
-                                           enabled=values.get('enabled',True),
-                                           use_regex=use_regex,
-                                           version=file_name,
-                                           flags=flags)
-                        if file_name not in self.rules:
-                            # _rules_raw[rule_type] = []
-                            self.rules[file_name] = RuleRaw()
-                        target_list = getattr(self.rules[file_name], rule_type)
-                        target_list.append(rule)
+                    current_rule = ""
+                    try:
+                        for values in rule_data:
+                            action = ActionType(values.get('action', 'replace'))
+                            flags = re.RegexFlag(values.get('flags', 0))
+                            patron = values.get('pattern','')
+                            reemplazo = values.get('replacement','')
+                            description = values.get('description', values.get('id','N.M'))
+                            use_regex = values.get('use_regex', False)
+                            # print('rule',values.get('description'), file_name)
+                            current_rule = "%s %s" % (description, patron)
+                            rule = MigrateRule(pattern=patron,
+                                               action=action,
+                                               replacement=reemplazo,
+                                               description=description,
+                                               enabled=values.get('enabled',True),
+                                               use_regex=use_regex,
+                                               version=file_name,
+                                               flags=flags)
+                            if file_name not in self.rules:
+                                # _rules_raw[rule_type] = []
+                                self.rules[file_name] = RuleRaw()
+                            target_list = getattr(self.rules[file_name], rule_type)
+                            target_list.append(rule)
+                    except Exception as ex2:
+                        print('*** Error in rule:',current_rule, str(ex2))
+                        raise
                         #_rules_raw[rule_type].append(rule)
                 # self.rules[file_name]=_rules_raw
                     #self._compile_and_save(lang, patron, reemplazo,action)

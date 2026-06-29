@@ -35,7 +35,90 @@ python_patterns:
     description: "rename groups_id to groups_id"
     enabled: true
     use_regex: false
-
+  - id: "rename_field_tax"
+    pattern: "importe_gift_card"
+    replacement: 'amount_giftcard_payment'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "amount_giftcard"
+    replacement: 'amount_giftcard_payment'
+    description: "rename field"
+    enabled: false
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_iht"
+    replacement: 'amount_tax_iht'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_exento"
+    replacement: 'amount_tax_exempt'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_vgc"
+    replacement: 'amount_tax_zero'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_ncf"
+    replacement: 'amount_tax_nocredit'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_dscto"
+    replacement: 'amount_total_discount'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_iht"
+    replacement: 'amount_tax_iht'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_ice"
+    replacement: 'amount_tax_ice'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_tasas"
+    replacement: 'amount_tax_rate'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_ipj"
+    replacement: 'amount_tax_ipj'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax"
+    pattern: "importe_base"
+    replacement: 'amount_tax_base'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax1"
+    pattern: "tipo_compra_id"
+    replacement: 'purchase_tax_type_id'
+    description: "rename field"
+    enabled: true
+    use_regex: false
+  - id: "rename_field_tax2"
+    pattern: "tipo_venta_id"
+    replacement: 'sale_tax_type_id'
+    description: "rename field"
+    enabled: true
+    use_regex: false
 xml_patterns:
   - id: "rename_groups_id"
     pattern: (?<=name=[\"'])groups_id(?=[\"'])
@@ -47,6 +130,84 @@ xml_patterns:
     pattern: ([\"']account\.payment[\"'].*)(\('state'.*'posted'\))
     replacement: "\\1('state','=','paid')"
     description: "rename_payment_state"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_iht)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_iht\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_exento)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_exempt\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_ice)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_ice\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_ipj)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_ipj\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_tasas)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_rate\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_ncf)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_nocredit\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_vgc)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_zero\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_dscto)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_total_discount\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_dscto_items)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_total_discount_items\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_gift_card)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_giftcard_payment\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(importe_base)(["\'])([\s\S]*?/>)
+    replacement: "\\1amount_tax_base\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(tipo_compra_id)(["\'])([\s\S]*?/>)
+    replacement: "\\1purchase_tax_type_id\\3/>"
+    description: "rename field"
+    enabled: true
+    use_regex: true
+  - id: "rename_field_tax"
+    pattern: (<field[\s\S]*?name=["\'])(tipo_venta_id)(["\'])([\s\S]*?/>)
+    replacement: "\\1sale_tax_type_id\\3/>"
+    description: "rename field"
     enabled: true
     use_regex: true
 js_patterns: []

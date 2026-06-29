@@ -73,8 +73,8 @@ def _migrate_expression_to_domain(logger,base_path,module_name=None,dry_run=Fals
                 #logger.info(f"Migrated expression imports to Domain in: {file}")
 
         except Exception as e:
-            print(f"Error processing file {file}: {str(e)}")
-            #logger.error(f"Error processing file {file}: {str(e)}")
+            # print(f"Error processing file {file} : {str(e)}")
+            logger.error(f"Error processing file {file} \n{str(e)}")
 
     return True
 
